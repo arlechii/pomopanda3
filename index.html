@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PomoPanda Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FFB6D9 0%, #A78BFA 50%, #60A5FA 100%);
+            transition: background 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .container {
+            background: white;
+            border-radius: 40px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2), 0 0 40px rgba(255, 182, 217, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .container {
+            background: #2a2a3e;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 48px;
+            margin-bottom: 5px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 16px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .subtitle {
+            color: #aaa;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .settings-btn, .dark-mode-btn {
+            background: linear-gradient(135deg, #FFB6D9 0%, #FFD4E5 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 182, 217, 0.4);
+        }
+
+        .settings-btn:hover, .dark-mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 182, 217, 0.6);
+        }
+
+        body.dark-mode .settings-btn,
+        body.dark-mode .dark-mode-btn {
+            background: #3a3a4e;
+            color: white;
+        }
+
+        .mode-indicator {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-indicator.work {
+            background: linear-gradient(135deg, #FFB6D9 0%, #FFD4E5 100%);
+            color: #E63946;
+        }
+
+        .mode-indicator.break {
+            background: linear-gradient(135deg, #A8EDEA 0%, #FED6E3 100%);
+            color: #06A77D;
+        }
+
+        .task-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #FFD4E5;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        body.dark-mode .task-input {
+            background: #3a3a4e;
+            color: white;
+            border-color: #4a4a5e;
+        }
+
+        .task-input:focus {
+            outline: none;
+            border-color: #A78BFA;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+        }
+
+        .task-display {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            font-style: italic;
+            min-height: 20px;
+            font-weight: 600;
+        }
+
+        body.dark-mode .task-display {
+            color: #aaa;
+        }
+
+        .panda-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 20px auto 30px;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.15));
+        }
+
+        .panda {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 140px;
+            transition: all 0.3s ease;
+        }
+
+        .panda.sleeping {
+            animation: sleep 3s ease-in-out infinite;
+        }
+
+        .panda.working {
+            animation: working 2s ease-in-out infinite;
+        }
+
+        .panda.tired {
+            animation: tired 2.5s ease-in-out infinite;
+        }
+
+        .panda.happy {
+            animation: happy 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sleep {
+            0%, 100% { transform: translateY(0) scaleY(1); }
+            50% { transform: translateY(8px) scaleY(0.92); }
+        }
+
+        @keyframes working {
+            0%, 100% { transform: scale(1) rotateZ(0deg); }
+            25% { transform: scale(1.08) rotateZ(-3deg); }
+            75% { transform: scale(1.08) rotateZ(3deg); }
+        }
+
+        @keyframes tired {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.85); }
+        }
+
+        @keyframes happy {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #FFE0F0;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .progress-bar {
+            background: #3a3a4e;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFB6D9 0%, #A78BFA 50%, #60A5FA 100%);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(255, 182, 217, 0.6);
+        }
+
+        .timer-display {
+            font-size: 90px;
+            font-weight: 900;
+            margin: 25px 0;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 8px;
+            animation: pulse 1s ease-in-out infinite;
+            transition: color 0.3s ease;
+            text-shadow: 0 4px 8px rgba(255, 182, 217, 0.3);
+        }
+
+        body.dark-mode .timer-display {
+            color: #FFB6D9;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-family: 'Comic Sans MS', cursive;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #FFB6D9 0%, #FFD4E5 100%);
+            color: #E63946;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(255, 182, 217, 0.5);
+        }
+
+        .btn-pause {
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFECCC 100%);
+            color: #333;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-pause:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(255, 229, 180, 0.5);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #C7CEEA 0%, #E0E0FF 100%);
+            color: #333;
+            padding: 14px 24px;
+            min-width: 100px;
+        }
+
+        .btn-reset:hover:not(:disabled) {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(199, 206, 234, 0.5);
+        }
+
+        body.dark-mode .btn-reset {
+            background: #3a3a4e;
+            color: white;
+        }
+
+        body.dark-mode .btn-reset:hover:not(:disabled) {
+            background: #4a4a5e;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 3px solid #FFE0F0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+        body.dark-mode .stats {
+            border-top-color: #3a3a4e;
+        }
+
+        .stat {
+            font-size: 15px;
+            color: #888;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .stat {
+            color: #aaa;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+            color: #FFB6D9;
+            transition: color 0.3s ease;
+            margin-top: 8px;
+        }
+
+        body.dark-mode .stat-value {
+            color: #FFD4E5;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #FFB6D9 0%, #FFD4E5 100%);
+            padding: 18px 28px;
+            border-radius: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
+            animation: slideIn 0.5s ease;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        body.dark-mode .notification {
+            background: #3a3a4e;
+            color: #FFD4E5;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .keyboard-hint {
+            font-size: 13px;
+            color: #ccc;
+            margin-top: 20px;
+            transition: color 0.3s ease;
+            font-weight: 600;
+        }
+
+        body.dark-mode .keyboard-hint {
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .modal-content {
+            background-color: #2a2a3e;
+            color: white;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 25px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        body.dark-mode .modal-content h2 {
+            color: white;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        body.dark-mode .setting-group label {
+            color: white;
+        }
+
+        .setting-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #FFD4E5;
+            border-radius: 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #333;
+        }
+
+        body.dark-mode .setting-group input {
+            background: #3a3a4e;
+            color: white;
+            border-color: #4a4a5e;
+        }
+
+        .setting-group input:focus {
+            outline: none;
+            border-color: #A78BFA;
+            box-shadow: 0 0 12px rgba(167, 139, 250, 0.3);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+        }
+
+        .modal-save {
+            background: linear-gradient(135deg, #FFB6D9 0%, #FFD4E5 100%);
+            color: #E63946;
+        }
+
+        .modal-save:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 182, 217, 0.4);
+        }
+
+        .modal-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .modal-cancel:hover {
+            background: #d0d0d0;
+        }
+
+        body.dark-mode .modal-cancel {
+            background: #3a3a4e;
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 35px 25px;
+            }
+
+            .title {
+                font-size: 36px;
+            }
+
+            .timer-display {
+                font-size: 65px;
+                letter-spacing: 5px;
+            }
+
+            .panda {
+                font-size: 100px;
+            }
+
+            .panda-container {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        .media-player {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 3px solid #FFE0F0;
+            transition: border-color 0.3s ease;
+        }
+
+        body.dark-mode .media-player {
+            border-top-color: #3a3a4e;
+        }
+
+        .player-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+            transition: color 0.3s ease;
+        }
+
+        body.dark-mode .player-title {
+            color: white;
+        }
+
+        .media-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: #FFE0F0;
+            border: 2px solid transparent;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #FFB6D9 0%, #FFD4E5 100%);
+            border-color: #FFB6D9;
+            transform: scale(1.05);
+        }
+
+        body.dark-mode .tab-btn {
+            background: #3a3a4e;
+            color: white;
+            border-color: #4a4a5e;
+        }
+
+        body.dark-mode .tab-btn.active {
+            background: linear-gradient(135deg, #A78BFA 0%, #764ba2 100%);
+            border-color: #A78BFA;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #FFD4E5;
+            border-radius: 15px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        body.dark-mode .input-group input {
+            background: #3a3a4e;
+            color: white;
+            border-color: #4a4a5e;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #A78BFA;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.3);
+        }
+
+        .input-group button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #FFB6D9 0%, #FFD4E5 100%);
+            color: #E63946;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .input-group button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 182, 217, 0.4);
+        }
+
+        .video-player {
+            width: 100%;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-player iframe {
+            width: 100%;
+            height: 200px;
+            border: none;
+        }
+
+        .spotify-player {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .spotify-player iframe {
+            width: 100%;
+            height: 280px;
+            border: none;
+        }
+
+        .now-playing {
+            background: linear-gradient(135deg, #FFE0F0 0%, #E0E0FF 100%);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        body.dark-mode .now-playing {
+            background: #3a3a4e;
+            color: #FFD4E5;
+        }
+
+        .error-msg {
+            background: #FFE0E0;
+            color: #E63946;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        body.dark-mode .error-msg {
+            background: #3a2a2a;
+            color: #FFB6D9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">PomoPanda Timer</div>
+            <div class="subtitle">Work hard, rest like a panda 🎋</div>
+            <div class="header-buttons">
+                <button class="settings-btn" onclick="openSettings()">⚙️ Settings</button>
+                <button class="dark-mode-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+            </div>
+            <div class="mode-indicator work" id="modeIndicator">🐼 Work Session</div>
+        </div>
+
+        <input type="text" class="task-input" id="taskInput" placeholder="What are you working on? (optional)">
+        <div class="task-display" id="taskDisplay"></div>
+
+        <div class="panda-container">
+            <div class="panda working" id="pandaEmoji">🐼</div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">25:00</div>
+
+        <div class="controls">
+            <button class="btn-start" id="startBtn" onclick="startTimer()">▶ Start</button>
+            <button class="btn-pause" id="pauseBtn" onclick="pauseTimer()" disabled>⏸ Pause</button>
+            <button class="btn-reset" id="resetBtn" onclick="resetTimer()">↻ Reset</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div>Completed</div>
+                <div class="stat-value" id="completedCount">0</div>
+            </div>
+            <div class="stat">
+                <div>Total Time</div>
+                <div class="stat-value" id="totalTime">0m</div>
+            </div>
+        </div>
+
+        <div class="media-player">
+            <div class="player-title">🎵 Music & Video Player</div>
+            
+            <div class="media-tabs">
+                <button class="tab-btn active" onclick="showYouTubeTab()">▶ YouTube</button>
+                <button class="tab-btn" onclick="showSpotifyTab()">🎧 Spotify</button>
+            </div>
+
+            <!-- YouTube Tab -->
+            <div id="youtube-tab" class="tab-content active">
+                <div class="input-group">
+                    <input type="text" id="youtubeUrl" placeholder="Paste YouTube URL or ID...">
+                    <button onclick="loadYouTube()">Load</button>
+                </div>
+                <div id="youtubePlayer" class="video-player"></div>
+                <div class="now-playing" id="youtubeStatus">Ready to load YouTube videos</div>
+                <div id="youtubeError"></div>
+                <div id="youtubeFallback" class="now-playing" style="display:none; flex-direction:column; gap:8px;">
+                    <a id="youtubeOpenLink" href="#" target="_blank" rel="noopener" style="font-weight:800; color:#1a73e8; text-decoration:underline;">Open on YouTube</a>
+                    <pre id="youtubeDiag" style="margin:0; font-size:12px; color:#444; white-space:pre-wrap; text-align:left;"></pre>
+                </div>
+            </div>
+
+            <!-- Spotify Tab -->
+            <div id="spotify-tab" class="tab-content">
+                <div class="input-group">
+                    <input type="text" id="spotifyUrl" placeholder="Paste Spotify URL...">
+                    <button onclick="loadSpotify()">Load</button>
+                </div>
+                <div id="spotifyPlayer" class="spotify-player"></div>
+                <div class="now-playing" id="spotifyStatus">Ready to load Spotify songs</div>
+                <div id="spotifyError"></div>
+            </div>
+        </div>
+
+        <div class="keyboard-hint">💡 SPACEBAR to start/pause • R to reset</div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h2>⚙️ Settings</h2>
+            <div class="setting-group">
+                <label for="workDuration">Work Duration (minutes):</label>
+                <input type="number" id="workDuration" min="1" max="60" value="25">
+            </div>
+            <div class="setting-group">
+                <label for="breakDuration">Break Duration (minutes):</label>
+                <input type="number" id="breakDuration" min="1" max="30" value="5">
+            </div>
+            <div class="setting-group">
+                <label>
+                    <input type="checkbox" id="autoStartBreak"> Auto-start breaks
+                </label>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-save" onclick="saveSettings()">Save</button>
+                <button class="modal-cancel" onclick="closeSettings()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let WORK_TIME = 25 * 60;
+        let BREAK_TIME = 5 * 60;
+        let AUTO_START_BREAK = true;
+
+        let timeLeft = WORK_TIME;
+        let isRunning = false;
+        let isWorkSession = true;
+        let timerInterval = null;
+        let completedPomodoros = 0;
+        let totalMinutesWorked = 0;
+        let currentTask = '';
+
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const pandaEmoji = document.getElementById('pandaEmoji');
+        const completedCount = document.getElementById('completedCount');
+        const totalTimeDisplay = document.getElementById('totalTime');
+        const settingsModal = document.getElementById('settingsModal');
+        const workDurationInput = document.getElementById('workDuration');
+        const breakDurationInput = document.getElementById('breakDuration');
+        const autoStartBreakInput = document.getElementById('autoStartBreak');
+        const taskInput = document.getElementById('taskInput');
+        const taskDisplay = document.getElementById('taskDisplay');
+        const progressFill = document.getElementById('progressFill');
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('pomodoroData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                WORK_TIME = data.workTime || 25 * 60;
+                BREAK_TIME = data.breakTime || 5 * 60;
+                AUTO_START_BREAK = data.autoStartBreak !== false;
+                completedPomodoros = data.completed || 0;
+                totalMinutesWorked = data.totalTime || 0;
+                timeLeft = WORK_TIME;
+
+                completedCount.textContent = completedPomodoros;
+                updateTotalTime();
+                workDurationInput.value = Math.floor(WORK_TIME / 60);
+                breakDurationInput.value = Math.floor(BREAK_TIME / 60);
+                autoStartBreakInput.checked = AUTO_START_BREAK;
+            }
+
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        function saveToStorage() {
+            const data = {
+                workTime: WORK_TIME,
+                breakTime: BREAK_TIME,
+                autoStartBreak: AUTO_START_BREAK,
+                completed: completedPomodoros,
+                totalTime: totalMinutesWorked
+            };
+            localStorage.setItem('pomodoroData', JSON.stringify(data));
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const totalTime = isWorkSession ? WORK_TIME : BREAK_TIME;
+            const progress = ((totalTime - timeLeft) / totalTime) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        function updateModeIndicator() {
+            if (isWorkSession) {
+                modeIndicator.textContent = '🐼 Work Session';
+                modeIndicator.className = 'mode-indicator work';
+                setPandaExpression('working');
+            } else {
+                modeIndicator.textContent = '☕ Break Time';
+                modeIndicator.className = 'mode-indicator break';
+                setPandaExpression('sleeping');
+            }
+        }
+
+        function setPandaExpression(expression) {
+            pandaEmoji.className = 'panda ' + expression;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+
+                if (timeLeft <= 0) {
+                    completeSession();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            isWorkSession = true;
+            timeLeft = WORK_TIME;
+            updateDisplay();
+            updateModeIndicator();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            saveToStorage();
+        }
+
+        function completeSession() {
+            pauseTimer();
+            
+            if (isWorkSession) {
+                completedPomodoros++;
+                totalMinutesWorked += Math.floor(WORK_TIME / 60);
+                completedCount.textContent = completedPomodoros;
+                updateTotalTime();
+                showNotification(`🎉 Amazing! "${currentTask || 'Session'}" complete!`);
+                setPandaExpression('tired');
+            } else {
+                showNotification('💪 Refreshed? Ready to work!');
+                setPandaExpression('happy');
+            }
+
+            playSound();
+            saveToStorage();
+
+            if (AUTO_START_BREAK && isWorkSession) {
+                setTimeout(() => {
+                    isWorkSession = false;
+                    timeLeft = BREAK_TIME;
+                    updateDisplay();
+                    updateModeIndicator();
+                    startBtn.disabled = false;
+                    startTimer();
+                }, 2000);
+            } else {
+                isWorkSession = !isWorkSession;
+                timeLeft = isWorkSession ? WORK_TIME : BREAK_TIME;
+                updateDisplay();
+                updateModeIndicator();
+                startBtn.disabled = false;
+            }
+        }
+
+        function updateTotalTime() {
+            const hours = Math.floor(totalMinutesWorked / 60);
+            if (hours > 0) {
+                totalTimeDisplay.textContent = `${hours}h ${totalMinutesWorked % 60}m`;
+            } else {
+                totalTimeDisplay.textContent = `${totalMinutesWorked}m`;
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🐼 Panda Pomodoro', { body: message });
+            }
+
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.5s ease reverse';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        function playSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log('Audio context error:', e);
+            }
+        }
+
+        function openSettings() {
+            workDurationInput.value = Math.floor(WORK_TIME / 60);
+            breakDurationInput.value = Math.floor(BREAK_TIME / 60);
+            autoStartBreakInput.checked = AUTO_START_BREAK;
+            settingsModal.classList.add('show');
+        }
+
+        function closeSettings() {
+            settingsModal.classList.remove('show');
+        }
+
+        function saveSettings() {
+            const workMins = parseInt(workDurationInput.value) || 25;
+            const breakMins = parseInt(breakDurationInput.value) || 5;
+
+            WORK_TIME = workMins * 60;
+            BREAK_TIME = breakMins * 60;
+            AUTO_START_BREAK = autoStartBreakInput.checked;
+
+            isWorkSession = true;
+            timeLeft = WORK_TIME;
+            updateDisplay();
+            updateModeIndicator();
+
+            saveToStorage();
+            showNotification('⚙️ Settings saved!');
+            closeSettings();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (isRunning) {
+                    pauseTimer();
+                } else if (!startBtn.disabled) {
+                    startTimer();
+                }
+            }
+            if (e.code === 'KeyR' || e.key === 'r') {
+                resetTimer();
+            }
+        });
+
+        taskInput.addEventListener('change', () => {
+            currentTask = taskInput.value;
+            if (currentTask) {
+                taskDisplay.textContent = `📝 Working on: ${currentTask}`;
+            } else {
+                taskDisplay.textContent = '';
+            }
+        });
+
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        window.onclick = function(event) {
+            if (event.target === settingsModal) {
+                closeSettings();
+            }
+        }
+
+        // Simple tab switching
+        function showYouTubeTab() {
+            document.getElementById('youtube-tab').classList.add('active');
+            document.getElementById('spotify-tab').classList.remove('active');
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.querySelectorAll('.tab-btn')[1].classList.remove('active');
+        }
+
+        function showSpotifyTab() {
+            document.getElementById('youtube-tab').classList.remove('active');
+            document.getElementById('spotify-tab').classList.add('active');
+            document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        }
+
+        // YouTube functions
+        function loadYouTube() {
+            var url = document.getElementById('youtubeUrl').value;
+            var errorDiv = document.getElementById('youtubeError');
+            var playerDiv = document.getElementById('youtubePlayer');
+            var statusDiv = document.getElementById('youtubeStatus');
+            errorDiv.innerHTML = '';
+            console.log('YouTube URL (raw):', url);
+
+            if (!url) {
+                errorDiv.innerHTML = '❌ Enter a YouTube URL or ID';
+                return;
+            }
+
+            url = String(url).trim();
+
+            var videoId = getYouTubeId(url);
+            console.log('Extracted Video ID:', videoId);
+
+            var fallbackDiv = document.getElementById('youtubeFallback');
+            var openLink = document.getElementById('youtubeOpenLink');
+            var diag = document.getElementById('youtubeDiag');
+            if (openLink) {
+                openLink.href = 'https://www.youtube.com/watch?v=' + (videoId || '');
+            }
+            if (fallbackDiv) {
+                fallbackDiv.style.display = 'none';
+            }
+
+            if (!videoId) {
+                errorDiv.innerHTML = '❌ Invalid YouTube URL/ID';
+                return;
+            }
+
+            try {
+                // If the page is opened via file:// some embeds may be blocked by the provider.
+                console.log('Location protocol:', location.protocol);
+                if (location.protocol === 'file:') {
+                    statusDiv.textContent = '⚠️ Warning: running from file:// may block embeds. Serve over http://';
+                }
+
+                // Create iframe via DOM to avoid innerHTML sanitization issues
+                playerDiv.innerHTML = '';
+                var iframe = document.createElement('iframe');
+                iframe.width = '100%';
+                iframe.height = '250';
+                iframe.src = 'https://www.youtube.com/embed/' + videoId;
+                iframe.frameBorder = '0';
+                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+                iframe.allowFullscreen = true;
+                // don't force referrerPolicy — use browser default
+
+                // onload / onerror handlers for diagnostics and fallback
+                iframe.onload = function() {
+                    console.log('YouTube iframe loaded:', iframe.src);
+                    statusDiv.textContent = '▶ Loaded: ' + videoId;
+                    showNotification('✅ YouTube loaded!');
+                    if (fallbackDiv) fallbackDiv.style.display = 'none';
+                };
+
+                iframe.onerror = function(err) {
+                    console.error('YouTube iframe error:', err, 'attempting nocookie fallback');
+                    statusDiv.textContent = '❌ YouTube failed to load, trying privacy-friendly fallback...';
+                    if (fallbackDiv) {
+                        fallbackDiv.style.display = 'flex';
+                        diag.textContent = 'iframe.src: ' + iframe.src + '\nprotocol: ' + location.protocol + '\nNote: If embedding is blocked the player will remain blank — click the "Open on YouTube" link.';
+                    }
+                    // try no-cookie domain as a fallback
+                    try {
+                        iframe.src = 'https://www.youtube-nocookie.com/embed/' + videoId;
+                    } catch (e2) {
+                        console.error('nocookie fallback failed:', e2);
+                    }
+                };
+
+                playerDiv.appendChild(iframe);
+
+                // If iframe doesn't fire load/error within a short time, inform the user
+
+                setTimeout(function() {
+                    if (statusDiv.textContent.indexOf('Loaded') === -1 && statusDiv.textContent.indexOf('failed') === -1 && statusDiv.textContent.indexOf('Warning') === -1) {
+                        statusDiv.textContent = '⚠️ If player stays blank, the video may disallow embedding or your browser blocked third-party iframes.';
+                        console.log('YouTube embed may be blocked or the video prevents embedding.');
+                        if (fallbackDiv) {
+                            fallbackDiv.style.display = 'flex';
+                            diag.textContent = 'iframe.src: ' + iframe.src + '\nprotocol: ' + location.protocol + '\nStatus: no load event after timeout. Try "Open on YouTube".';
+                        }
+                    }
+                }, 1800);
+
+                console.log('YouTube iframe created for ID:', videoId, iframe);
+            } catch (e) {
+                console.error('Error inserting YouTube iframe:', e);
+                errorDiv.innerHTML = '❌ Could not create player — see console for details.';
+            }
+        }
+
+        function getYouTubeId(url) {
+            var patterns = [
+                /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/,
+                /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+                /^([a-zA-Z0-9_-]{11})$/
+            ];
+
+            for (var i = 0; i < patterns.length; i++) {
+                var match = url.match(patterns[i]);
+                if (match) {
+                    return match[1];
+                }
+            }
+            return null;
+        }
+
+        // Spotify functions
+        function loadSpotify() {
+            var url = document.getElementById('spotifyUrl').value;
+            var errorDiv = document.getElementById('spotifyError');
+            var playerDiv = document.getElementById('spotifyPlayer');
+            var statusDiv = document.getElementById('spotifyStatus');
+            errorDiv.innerHTML = '';
+            console.log('Spotify URL (raw):', url);
+
+            if (!url) {
+                errorDiv.innerHTML = '❌ Enter a Spotify URL or URI';
+                return;
+            }
+
+            url = String(url).trim();
+
+            var spotifyId = getSpotifyId(url);
+            console.log('Extracted Spotify ID:', spotifyId);
+
+            if (!spotifyId) {
+                errorDiv.innerHTML = '❌ Invalid Spotify URL/URI';
+                return;
+            }
+
+            try {
+                console.log('Location protocol:', location.protocol);
+                if (location.protocol === 'file:') {
+                    statusDiv.textContent = '⚠️ Warning: running from file:// may block embeds. Serve over http://';
+                }
+
+                playerDiv.innerHTML = '';
+                var iframe = document.createElement('iframe');
+                iframe.src = 'https://open.spotify.com/embed/' + spotifyId.type + '/' + spotifyId.id + '?utm_source=generator';
+                iframe.width = '100%';
+                iframe.height = '280';
+                iframe.frameBorder = '0';
+                iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+                iframe.allowFullscreen = true;
+                iframe.referrerPolicy = 'no-referrer';
+                playerDiv.appendChild(iframe);
+
+                console.log('Spotify iframe created:', iframe);
+                statusDiv.textContent = '🎧 Loaded: ' + spotifyId.type + '/' + spotifyId.id;
+                showNotification('✅ Spotify loaded!');
+            } catch (e) {
+                console.error('Error inserting Spotify iframe:', e);
+                errorDiv.innerHTML = '❌ Could not create Spotify player — see console for details.';
+            }
+        }
+
+        function getSpotifyId(url) {
+            // Accept formats like:
+            // https://open.spotify.com/track/{id}
+            // https://open.spotify.com/embed/track/{id}?si=...
+            // spotify:track:{id}
+            var match = url.match(/open\.spotify\.com\/(?:embed\/)?(track|playlist|artist|album)\/([A-Za-z0-9]+)/);
+            if (match) {
+                return { type: match[1], id: match[2] };
+            }
+
+            // spotify URI format: spotify:track:{id}
+            match = url.match(/spotify:(track|playlist|artist|album):([A-Za-z0-9]+)/);
+            if (match) {
+                return { type: match[1], id: match[2] };
+            }
+
+            return null;
+        }
+
+        loadFromStorage();
+        updateDisplay();
+        updateModeIndicator();
+    </script>
+</body>
+</html>
